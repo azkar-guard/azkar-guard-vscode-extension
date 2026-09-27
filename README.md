@@ -4,6 +4,12 @@ Keeps reminding you until your morning and evening Azkar are complete, right ins
 
 Phase 2 of [Azkar Guard](https://github.com/azkar-guard). The browser extension is [azkar-guard-browser-extension](https://github.com/azkar-guard/azkar-guard-browser-extension).
 
+## Install
+
+- **VS Code:** [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=azkar-guard.azkar-guard), or run `code --install-extension azkar-guard.azkar-guard`.
+- **Cursor, Windsurf, VSCodium, Gitpod:** [Open VSX](https://open-vsx.org/extension/azkar-guard/azkar-guard). Search for "Azkar Guard" in the Extensions view.
+- **Manual:** download the `.vsix` from [Releases](https://github.com/azkar-guard/azkar-guard-vscode-extension/releases) and run `code --install-extension azkar-guard-<version>.vsix`.
+
 ## How it works
 
 - **Status bar.** `$(shield) Azkar 2/8` shows the current session's progress. It stays highlighted until the session is done. Click it to open the checklist.
@@ -107,4 +113,4 @@ src/test/suite.ts      integration tests
 
 The azkar data and pure logic are deliberately copied from the browser extension rather than shared, per the project plan.
 
-**Publishing** (later): the VS Code Marketplace (`vsce`) and Open VSX (`ovsx`), so Cursor, Windsurf and VSCodium users can install it too.
+**Publishing:** published as `azkar-guard.azkar-guard` on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=azkar-guard.azkar-guard) and [Open VSX](https://open-vsx.org/extension/azkar-guard/azkar-guard). Releases are currently uploaded by hand from `npm run package`; automated publishing comes with the CI/CD work.
