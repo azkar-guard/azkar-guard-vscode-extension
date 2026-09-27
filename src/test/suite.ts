@@ -40,13 +40,48 @@ test("is unconfigured until a location is set", async () => {
   assert.equal((await api.status()).state, "unconfigured");
 });
 
-test("detects the current window once a city is set", async () => {
-  await configure("breakAfterMinutes", 5);
-  await configure("snoozeMinutes", 2);
+test("converts an old free-text city setting to coordinates from the offline list", async () => {
   await configure("location.city", "Cairo");
   await configure("location.country", "Egypt");
+  await api.migrateLegacyLocation();
+  const c = vscode.workspace.getConfiguration("azkarGuard");
+  assert.equal(c.get("location.latitude"), 30.0626);
+  assert.equal(c.get("location.longitude"), 31.2497);
+  assert.equal(c.get("location.name"), "Cairo, Egypt");
+  assert.equal(c.get("location.city"), "", "legacy city cleared");
+});
+
+test("computes the current window on-device from coordinates", async () => {
+  await configure("breakAfterMinutes", 5);
+  await configure("snoozeMinutes", 2);
   const status = await waitFor(() => api.status(), (s) => s.state === "active", "active status");
   assert.equal(status.state, "active");
+});
+
+test("Set location → Detect from time zone saves coordinates without any network", async () => {
+  const w = vscode.window as unknown as Record<string, unknown>;
+  const originals = { quickPick: w.showQuickPick, info: w.showInformationMessage };
+  let offered: string[] = [];
+  w.showQuickPick = async (items: readonly { label: string }[]) => {
+    offered = items.map((i) => i.label);
+    return items[0]; // "Detect from time zone" is first when the zone is known
+  };
+  w.showInformationMessage = async () => undefined;
+  try {
+    await configure("location.latitude", null);
+    await configure("location.longitude", null);
+    await vscode.commands.executeCommand("azkarGuard.setLocation");
+    const c = vscode.workspace.getConfiguration("azkarGuard");
+    assert.ok(offered.length === 3, `three choices offered (${offered.join(" | ")})`);
+    assert.equal(typeof c.get("location.latitude"), "number");
+    assert.ok(String(c.get("location.name")).length > 0, "display name saved");
+  } finally {
+    w.showQuickPick = originals.quickPick;
+    w.showInformationMessage = originals.info;
+  }
+  // Back to Cairo for the remaining tests.
+  await configure("location.latitude", 30.0626);
+  await configure("location.longitude", 31.2497);
 });
 
 test("opens the checklist as a webview tab", async () => {

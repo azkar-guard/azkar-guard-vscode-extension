@@ -239,7 +239,8 @@ function footer(lang: Lang): HTMLElement {
     t(lang, "footer.sources"), " ",
     link("https://www.hisnmuslim.com", t(lang, "footer.azkar")), " · ",
     link("https://tanzil.net", t(lang, "footer.quran")), " · ",
-    link("https://aladhan.com", t(lang, "footer.prayer")),
+    link("https://github.com/batoulapps/adhan-js", t(lang, "footer.prayer")), " · ",
+    link("https://www.geonames.org", t(lang, "footer.cities")),
   );
 }
 

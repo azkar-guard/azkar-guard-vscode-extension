@@ -6,15 +6,14 @@ Azkar Guard is a VS Code extension that reminds you to complete your morning and
 
 ## What is stored, and where
 
-- **Settings** (location, calculation method, level, language, reminder options) are ordinary VS Code settings in your user settings.
-- **Progress** (tap counts for the current session), **completion history** (for the streak), the **break timer** state and **cached prayer times** are kept in VS Code's extension storage on your machine.
+- **Settings** (location as coordinates and a display name, calculation method, level, language, reminder options) are ordinary VS Code settings in your user settings.
+- **Progress** (tap counts for the current session), **completion history** (for the streak) and the **break timer** state are kept in VS Code's extension storage on your machine.
 
 If you use VS Code **Settings Sync**, your settings, progress and completion history sync between your own machines through your Settings Sync account (Microsoft or GitHub), like any other VS Code setting. Nothing is sent to the Azkar Guard authors. Uninstalling the extension removes its stored state.
 
 ## What leaves your machine
 
-- **Prayer times:** to calculate Fajr and Maghrib, the extension requests prayer times from the [AlAdhan API](https://aladhan.com) (`api.aladhan.com`). Each request contains your city and country, or your coordinates, plus the calculation method. AlAdhan receives these the way any web server receives a request, including your IP address. See [AlAdhan's terms](https://aladhan.com/credits-and-terms).
-- **Nothing else.** The extension does not read your code or files, and makes no other network requests.
+**Nothing.** Prayer times are calculated on your machine with [adhan-js](https://github.com/batoulapps/adhan-js), and your location is chosen from a city list bundled with the extension, or detected from your computer's time zone. The extension makes **no network requests** and does not read your code or files.
 
 ## Activity
 

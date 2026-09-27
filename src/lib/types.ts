@@ -20,9 +20,12 @@ export interface Dhikr {
   virtue_note_ar?: string;
 }
 
-export type Location =
-  | { kind: "city"; city: string; country: string }
-  | { kind: "coords"; latitude: number; longitude: number };
+/** Where prayer times are computed for. `name` is only for display (e.g. "Cairo, Egypt"). */
+export interface Location {
+  latitude: number;
+  longitude: number;
+  name?: string;
+}
 
 export interface Settings {
   location: Location | null;
@@ -57,13 +60,6 @@ export interface BreakState {
 export interface PrayerDay {
   fajr: number;
   maghrib: number;
-}
-
-export interface PrayerCache {
-  /** Identifies the location + method the days were fetched for. */
-  key: string;
-  /** Keyed by YYYY-MM-DD in the location's own calendar. */
-  days: Record<string, PrayerDay>;
 }
 
 /** An active Azkar window. Morning = Fajr → Maghrib, Evening = Maghrib → next Fajr. */

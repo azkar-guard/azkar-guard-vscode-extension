@@ -1,7 +1,7 @@
 import { azkarFor } from "./azkar";
 import { localDate } from "./dates";
 import { t } from "./i18n";
-import { ensurePrayerDays } from "./prayer";
+import { prayerDays } from "./prayer";
 import { get, getSettings, set } from "./storage";
 import { currentStreak } from "./streak";
 import type { AzkarWindow, Dhikr, Settings } from "./types";
@@ -35,7 +35,7 @@ export async function getStatus(now = Date.now()): Promise<Status> {
 
   let window: AzkarWindow | null;
   try {
-    window = findWindow(await ensurePrayerDays(settings, now), now);
+    window = findWindow(prayerDays(settings.location, settings.method, now), now);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     return { state: "error", settings, streak: currentStreak(history, localDate(now)), error };

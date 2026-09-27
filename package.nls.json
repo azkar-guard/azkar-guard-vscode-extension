@@ -2,11 +2,11 @@
   "command.openChecklist": "Open Azkar checklist",
   "command.setLocation": "Set location for prayer times",
   "command.openSettings": "Open settings",
-  "config.city": "City used to calculate prayer times (with **Country**). Leave empty to use latitude/longitude instead.",
-  "config.country": "Country for the city above.",
-  "config.latitude": "Latitude, used when no city is set.",
-  "config.longitude": "Longitude, used when no city is set.",
-  "config.method": "Prayer time calculation method ([AlAdhan](https://aladhan.com/calculation-methods)).",
+  "config.city": "City (old format).",
+  "config.country": "Country (old format).",
+  "config.latitude": "Latitude used to calculate prayer times on your machine.",
+  "config.longitude": "Longitude used to calculate prayer times on your machine.",
+  "config.method": "Prayer time calculation method. Times are calculated on your machine with [adhan-js](https://github.com/batoulapps/adhan-js).",
   "config.level": "How many azkar to include. You can also switch from the checklist.",
   "config.level.small": "Small, about 3 minutes",
   "config.level.medium": "Medium, about 8 minutes",
@@ -14,5 +14,7 @@
   "config.language": "Interface language. `auto` follows VS Code's display language. The dhikr text is always Arabic.",
   "config.notifications": "Show a reminder every 30 minutes while a session is incomplete.",
   "config.breakAfterMinutes": "Minutes of active coding, with the session incomplete, before an **Azkar break** prompt.",
-  "config.snoozeMinutes": "Minutes of active coding a snooze postpones the prompt by. Two snoozes are allowed per session; after that the prompt returns on every editor change."
+  "config.snoozeMinutes": "Minutes of active coding a snooze postpones the prompt by. Two snoozes are allowed per session; after that the prompt returns on every editor change.",
+  "config.name": "Name of your location, for display only (e.g. `Cairo, Egypt`). Use **Azkar Guard: Set location** to pick a city or detect it.",
+  "config.deprecated": "Replaced by latitude/longitude. Use **Azkar Guard: Set location**; existing values are converted automatically."
 }
