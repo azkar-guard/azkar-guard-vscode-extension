@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+- **Fully offline.** Prayer times are calculated on your machine with adhan-js. No network requests at all.
+- **New Set location** menu:
+  - detect from your computer's time zone
+  - search a bundled list of 6,000+ cities (English or Arabic names)
+  - or enter coordinates
+- Existing `location.city` / `location.country` settings are converted to coordinates automatically.
+- Checked against AlAdhan for 9 cities × 20 methods × 2 dates: all within 1 minute. The Moonsighting Committee method intentionally follows the committee's own rules.
+
 ## 0.1.0
 
 First version (Phase 2 of Azkar Guard).

@@ -2,7 +2,7 @@
   "name": "azkar-guard",
   "displayName": "Azkar Guard — حارس الأذكار",
   "description": "Keeps reminding you until your morning and evening Azkar are complete, right inside VS Code.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "azkar-guard",
   "license": "MIT",
   "private": true,
@@ -62,17 +62,11 @@
     "configuration": {
       "title": "Azkar Guard",
       "properties": {
-        "azkarGuard.location.city": {
+        "azkarGuard.location.name": {
           "type": "string",
           "default": "",
           "order": 1,
-          "markdownDescription": "%config.city%"
-        },
-        "azkarGuard.location.country": {
-          "type": "string",
-          "default": "",
-          "order": 2,
-          "markdownDescription": "%config.country%"
+          "markdownDescription": "%config.name%"
         },
         "azkarGuard.location.latitude": {
           "type": [
@@ -82,7 +76,7 @@
           "default": null,
           "minimum": -90,
           "maximum": 90,
-          "order": 3,
+          "order": 2,
           "markdownDescription": "%config.latitude%"
         },
         "azkarGuard.location.longitude": {
@@ -93,8 +87,22 @@
           "default": null,
           "minimum": -180,
           "maximum": 180,
-          "order": 4,
+          "order": 3,
           "markdownDescription": "%config.longitude%"
+        },
+        "azkarGuard.location.city": {
+          "type": "string",
+          "default": "",
+          "order": 90,
+          "markdownDescription": "%config.city%",
+          "markdownDeprecationMessage": "%config.deprecated%"
+        },
+        "azkarGuard.location.country": {
+          "type": "string",
+          "default": "",
+          "order": 91,
+          "markdownDescription": "%config.country%",
+          "markdownDeprecationMessage": "%config.deprecated%"
         },
         "azkarGuard.method": {
           "type": "number",
@@ -214,5 +222,8 @@
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
+  },
+  "dependencies": {
+    "adhan": "^4.4.6"
   }
 }

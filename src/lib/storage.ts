@@ -1,8 +1,7 @@
-import type { BreakState, History, PrayerCache, Progress, Settings } from "./types";
+import type { BreakState, History, Progress, Settings } from "./types";
 
 /** Persistent state, backed by VS Code's `globalState` (see extension.ts). */
 interface Store {
-  prayerCache: PrayerCache;
   progress: Progress;
   history: History;
   breakState: BreakState;

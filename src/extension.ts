@@ -5,12 +5,13 @@ import { formatTime, MINUTE } from "./lib/dates";
 import { t } from "./lib/i18n";
 import { randomReminder, type Reminder } from "./lib/reminders";
 import { getStatus, tap, type ActiveStatus, type Status } from "./lib/session";
+import { allCities, cityLocation, findCity, locationFromTimeZone, systemTimeZone, type City } from "./lib/locations";
 import { get, initStorage, set, SYNCED_KEYS } from "./lib/storage";
-import type { Lang, Level } from "./lib/types";
+import type { Lang, Level, Location } from "./lib/types";
 import { windowKey } from "./lib/windows";
 import { ChecklistPanel } from "./panel";
 import type { FromWebview } from "./protocol";
-import { readSettings, SECTION, updateSetting } from "./settings";
+import { legacyCity, readSettings, saveLocation, SECTION, updateSetting } from "./settings";
 
 /** Host-side tap guard, just under the webview's 400 ms cooldown. */
 const TAP_COOLDOWN_MS = 350;
@@ -38,6 +39,8 @@ export interface TestApi {
   editorChanged(): Promise<void>;
   /** Tap every remaining dhikr down to zero. */
   completeSession(): Promise<void>;
+  /** Run the pre-v0.2 location migration now. */
+  migrateLegacyLocation(): Promise<void>;
 }
 
 export function deactivate(): void {}
@@ -89,6 +92,7 @@ class Controller implements vscode.Disposable {
   }
 
   async start(): Promise<void> {
+    await this.migrateLegacyLocation();
     await this.refresh();
     this.timer = setInterval(() => void this.minute(), MINUTE);
   }
@@ -113,6 +117,7 @@ class Controller implements vscode.Disposable {
         this.quietUntil = 0;
         await this.onEditorChange();
       },
+      migrateLegacyLocation: () => this.migrateLegacyLocation(),
       completeSession: async () => {
         const status = await getStatus();
         if (status.state !== "active") return;
@@ -278,25 +283,96 @@ class Controller implements vscode.Disposable {
     if (choice === action) await this.setLocation();
   }
 
+  /**
+   * Pick a location without any network call: detect it from the system time zone,
+   * search the bundled city list, or enter coordinates.
+   */
   private async setLocation(): Promise<void> {
-    const settings = readSettings();
-    const lang = settings.language;
-    const current = settings.location?.kind === "city" ? settings.location : undefined;
-    const required = (value: string) => (value.trim() ? undefined : t(lang, "options.errCity"));
-    const city = await vscode.window.showInputBox({ prompt: t(lang, "setup.city"), value: current?.city, ignoreFocusOut: true, validateInput: required });
-    if (city === undefined) return;
-    const country = await vscode.window.showInputBox({ prompt: t(lang, "setup.country"), value: current?.country, ignoreFocusOut: true, validateInput: required });
-    if (country === undefined) return;
-    await updateSetting("location.city", city.trim());
-    await updateSetting("location.country", country.trim());
+    const lang = readSettings().language;
+    const zone = systemTimeZone();
+    const detected = locationFromTimeZone(zone);
 
+    type Choice = vscode.QuickPickItem & { action: "detect" | "search" | "coords" };
+    const choices: Choice[] = [];
+    if (detected) {
+      choices.push({ action: "detect", label: `$(globe) ${t(lang, "setup.detect")}`, description: detected.name, detail: t(lang, "setup.detectDetail", { zone: zone ?? "" }) });
+    }
+    choices.push(
+      { action: "search", label: `$(search) ${t(lang, "setup.search")}` },
+      { action: "coords", label: `$(location) ${t(lang, "setup.coords")}` },
+    );
+    const choice = await vscode.window.showQuickPick(choices, { title: t(lang, "setup.title"), ignoreFocusOut: true });
+    if (!choice) return;
+
+    let location: Location | undefined;
+    if (choice.action === "detect") location = detected;
+    else if (choice.action === "search") location = await this.pickCity(lang);
+    else location = await this.enterCoordinates(lang);
+    if (!location) return;
+
+    await saveLocation(location);
     const status = await this.refresh();
     if (status.state === "active") {
       const session = t(lang, `session.${status.window.session}`);
-      void vscode.window.showInformationMessage(t(lang, "setup.saved", { session, time: formatTime(status.window.end, lang) }));
+      const saved = t(lang, "setup.saved", { place: location.name ?? "", session, time: formatTime(status.window.end, lang) });
+      void vscode.window.showInformationMessage(choice.action === "detect" ? `${saved} ${t(lang, "setup.detectedNote")}` : saved);
     } else if (status.state === "error") {
       void vscode.window.showErrorMessage(status.error);
     }
+  }
+
+  private async pickCity(lang: Lang): Promise<Location | undefined> {
+    type Item = vscode.QuickPickItem & { city: City };
+    const items: Item[] = allCities().map((city) => ({
+      city,
+      label: city.name,
+      // Arabic name and aliases in the description so they are searchable (e.g. "القاهرة", "Mecca").
+      description: [city.arabic, city.country, ...city.aliases.split("|")].filter(Boolean).join(" · "),
+    }));
+    const picked = await vscode.window.showQuickPick(items, {
+      title: t(lang, "setup.search"),
+      placeHolder: t(lang, "setup.searchPlaceholder"),
+      matchOnDescription: true,
+      ignoreFocusOut: true,
+    });
+    return picked && cityLocation(picked.city);
+  }
+
+  private async enterCoordinates(lang: Lang): Promise<Location | undefined> {
+    const ask = async (prompt: string, max: number, error: string) => {
+      const value = await vscode.window.showInputBox({
+        prompt,
+        ignoreFocusOut: true,
+        validateInput: (v) => {
+          const n = Number(v);
+          return v.trim() && Number.isFinite(n) && Math.abs(n) <= max ? undefined : error;
+        },
+      });
+      return value === undefined ? undefined : Number(value);
+    };
+    const latitude = await ask(t(lang, "options.latitude"), 90, t(lang, "options.errLatitude"));
+    if (latitude === undefined) return undefined;
+    const longitude = await ask(t(lang, "options.longitude"), 180, t(lang, "options.errLongitude"));
+    if (longitude === undefined) return undefined;
+    return { latitude, longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` };
+  }
+
+  /** Convert a pre-v0.2 free-text city/country setting to coordinates from the offline list. */
+  private async migrateLegacyLocation(): Promise<void> {
+    const legacy = legacyCity();
+    const c = vscode.workspace.getConfiguration(SECTION);
+    if (!legacy || typeof c.get("location.latitude") === "number") return;
+    const city = findCity(legacy.city, legacy.country);
+    if (city) {
+      await saveLocation(cityLocation(city));
+      return;
+    }
+    const lang = readSettings().language;
+    const action = t(lang, "setup.action");
+    const place = [legacy.city, legacy.country].filter(Boolean).join(", ");
+    void vscode.window.showWarningMessage(t(lang, "setup.migrateFailed", { place }), action).then((c) => {
+      if (c === action) void this.setLocation();
+    });
   }
 
   private openSettings(): Thenable<unknown> {

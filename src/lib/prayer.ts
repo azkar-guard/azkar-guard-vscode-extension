@@ -1,83 +1,77 @@
+import { CalculationMethod, CalculationParameters, Coordinates, HighLatitudeRule, PrayerTimes } from "adhan";
 import { DAY, localDate } from "./dates";
-import { get, set } from "./storage";
-import type { Location, PrayerCache, PrayerDay, Settings } from "./types";
+import type { Location, PrayerDay } from "./types";
 
-const API = "https://api.aladhan.com/v1";
-/** How many past days of prayer times to keep in the cache. */
-const KEEP_DAYS = 7;
+/**
+ * Calculation methods by AlAdhan method id (the ids used in settings since v0.1).
+ * Methods adhan-js ships are used as-is. The others are defined from the parameters
+ * AlAdhan publishes for them (https://api.aladhan.com/v1/methods, fetched 2026-09-27).
+ */
+const METHODS: Record<number, () => CalculationParameters> = {
+  1: CalculationMethod.Karachi,
+  2: CalculationMethod.NorthAmerica, // ISNA
+  3: CalculationMethod.MuslimWorldLeague,
+  4: CalculationMethod.UmmAlQura,
+  5: CalculationMethod.Egyptian,
+  8: () => custom(19.5, { minutes: 90 }), // Gulf Region
+  9: CalculationMethod.Kuwait,
+  10: CalculationMethod.Qatar,
+  11: CalculationMethod.Singapore,
+  12: () => custom(12, { angle: 12 }), // UOIF, France
+  13: CalculationMethod.Turkey,
+  14: () => custom(16, { angle: 15 }), // Spiritual Administration of Muslims of Russia
+  // adhan-js implements the committee's own rules (seasonal Fajr/Isha, its own high-latitude
+  // handling, Maghrib +3 min); AlAdhan's version simplifies them, so the two differ on purpose.
+  15: CalculationMethod.MoonsightingCommittee,
+  16: CalculationMethod.Dubai,
+  17: () => custom(20, { angle: 18 }), // JAKIM, Malaysia
+  18: () => custom(18, { angle: 18 }), // Tunisia
+  19: () => custom(18, { angle: 17 }), // Algeria
+  20: () => custom(20, { angle: 18 }), // Kemenag, Indonesia
+  // Morocco: AlAdhan's published params omit it, but its times put Maghrib 5 minutes after
+  // sunset in every sample we recorded (src/lib/fixtures/aladhan.json).
+  21: () => custom(19, { angle: 17 }, 5),
+  23: () => custom(18, { angle: 18 }, 5), // Jordan: Maghrib 5 minutes after sunset
+};
 
-interface AladhanDay {
-  timings: { Fajr: string; Maghrib: string };
-  date: { gregorian: { date: string } }; // DD-MM-YYYY
+export const METHOD_IDS = Object.keys(METHODS).map(Number);
+
+function custom(fajrAngle: number, isha: { angle: number } | { minutes: number }, maghribMinutes = 0): CalculationParameters {
+  const params = CalculationMethod.Other();
+  params.fajrAngle = fajrAngle;
+  if ("angle" in isha) params.ishaAngle = isha.angle;
+  else params.ishaInterval = isha.minutes;
+  params.methodAdjustments.maghrib = maghribMinutes;
+  return params;
 }
 
-function cacheKey(location: Location, method: number): string {
-  return JSON.stringify({ location, method });
+export function methodParameters(method: number): CalculationParameters {
+  const params = (METHODS[method] ?? METHODS[3]!)();
+  // Angle-based high-latitude handling, the same default AlAdhan uses. The Moonsighting
+  // Committee method keeps its own rules.
+  if (method !== 15) params.highLatitudeRule = HighLatitudeRule.TwilightAngle;
+  return params;
 }
 
-function monthUrl(location: Location, method: number, year: number, month: number): string {
-  const params = new URLSearchParams({ method: String(method), iso8601: "true" });
-  if (location.kind === "coords") {
-    params.set("latitude", String(location.latitude));
-    params.set("longitude", String(location.longitude));
-    return `${API}/calendar/${year}/${month}?${params}`;
-  }
-  params.set("city", location.city);
-  params.set("country", location.country);
-  return `${API}/calendarByCity/${year}/${month}?${params}`;
-}
-
-async function fetchMonth(
-  location: Location,
-  method: number,
-  year: number,
-  month: number,
-): Promise<Record<string, PrayerDay>> {
-  const res = await fetch(monthUrl(location, method, year, month));
-  if (!res.ok) throw new Error(`Aladhan API returned HTTP ${res.status}`);
-  const body = (await res.json()) as { code: number; data: AladhanDay[] | string };
-  if (body.code !== 200 || !Array.isArray(body.data)) {
-    throw new Error(`Aladhan API error: ${typeof body.data === "string" ? body.data : body.code}`);
-  }
-
-  const days: Record<string, PrayerDay> = {};
-  for (const entry of body.data) {
-    const [d, m, y] = entry.date.gregorian.date.split("-");
-    const fajr = Date.parse(entry.timings.Fajr);
-    const maghrib = Date.parse(entry.timings.Maghrib);
-    if (Number.isNaN(fajr) || Number.isNaN(maghrib)) throw new Error("Unexpected prayer time format");
-    days[`${y}-${m}-${d}`] = { fajr, maghrib };
-  }
-  return days;
+/** Fajr and Maghrib for one local calendar date, or null if they don't exist there (polar day/night). */
+export function prayerDay(location: Location, method: number, date: string): PrayerDay | null {
+  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
+  const times = new PrayerTimes(new Coordinates(location.latitude, location.longitude), new Date(y, m - 1, d), methodParameters(method));
+  const fajr = times.fajr.getTime();
+  const maghrib = times.maghrib.getTime();
+  return Number.isNaN(fajr) || Number.isNaN(maghrib) ? null : { fajr, maghrib };
 }
 
 /**
- * Return cached prayer days covering yesterday..tomorrow, fetching missing months.
- * The cache is dropped whenever the location or calculation method changes.
+ * Prayer days covering yesterday..day after tomorrow (local dates), computed on-device.
+ * Nothing is fetched and nothing needs caching: the computation is deterministic.
  */
-export async function ensurePrayerDays(
-  settings: Settings,
-  now: number,
-): Promise<Record<string, PrayerDay>> {
-  if (!settings.location) throw new Error("Location is not set");
-  const key = cacheKey(settings.location, settings.method);
-
-  const stored = await get("prayerCache");
-  const cache: PrayerCache = stored?.key === key ? stored : { key, days: {} };
-
-  const needed = [-1, 0, 1, 2].map((n) => localDate(now + n * DAY));
-  const missingMonths = new Set(needed.filter((d) => !cache.days[d]).map((d) => d.slice(0, 7)));
-  if (missingMonths.size === 0) return cache.days;
-
-  for (const ym of missingMonths) {
-    const [y, m] = ym.split("-").map(Number) as [number, number];
-    Object.assign(cache.days, await fetchMonth(settings.location, settings.method, y, m));
+export function prayerDays(location: Location, method: number, now: number): Record<string, PrayerDay> {
+  const days: Record<string, PrayerDay> = {};
+  for (const n of [-1, 0, 1, 2]) {
+    const date = localDate(now + n * DAY);
+    const day = prayerDay(location, method, date);
+    if (day) days[date] = day;
   }
-
-  const oldest = localDate(now - KEEP_DAYS * DAY);
-  for (const date of Object.keys(cache.days)) {
-    if (date < oldest) delete cache.days[date];
-  }
-  await set("prayerCache", cache);
-  return cache.days;
+  return days;
 }
