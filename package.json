@@ -1,0 +1,218 @@
+{
+  "name": "azkar-guard",
+  "displayName": "Azkar Guard — حارس الأذكار",
+  "description": "Keeps reminding you until your morning and evening Azkar are complete, right inside VS Code.",
+  "version": "0.1.0",
+  "publisher": "azkar-guard",
+  "license": "MIT",
+  "private": true,
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0F5132",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azkar-guard/azkar-guard-vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/azkar-guard/azkar-guard-vscode-extension/issues"
+  },
+  "homepage": "https://github.com/azkar-guard/azkar-guard-vscode-extension#readme",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "azkar",
+    "adhkar",
+    "dhikr",
+    "islam",
+    "muslim",
+    "reminder",
+    "prayer times",
+    "أذكار"
+  ],
+  "engines": {
+    "vscode": "^1.95.0",
+    "node": ">=22.12"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "azkarGuard.openChecklist",
+        "title": "%command.openChecklist%",
+        "category": "Azkar Guard",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "azkarGuard.setLocation",
+        "title": "%command.setLocation%",
+        "category": "Azkar Guard"
+      },
+      {
+        "command": "azkarGuard.openSettings",
+        "title": "%command.openSettings%",
+        "category": "Azkar Guard"
+      }
+    ],
+    "configuration": {
+      "title": "Azkar Guard",
+      "properties": {
+        "azkarGuard.location.city": {
+          "type": "string",
+          "default": "",
+          "order": 1,
+          "markdownDescription": "%config.city%"
+        },
+        "azkarGuard.location.country": {
+          "type": "string",
+          "default": "",
+          "order": 2,
+          "markdownDescription": "%config.country%"
+        },
+        "azkarGuard.location.latitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "minimum": -90,
+          "maximum": 90,
+          "order": 3,
+          "markdownDescription": "%config.latitude%"
+        },
+        "azkarGuard.location.longitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "minimum": -180,
+          "maximum": 180,
+          "order": 4,
+          "markdownDescription": "%config.longitude%"
+        },
+        "azkarGuard.method": {
+          "type": "number",
+          "default": 3,
+          "order": 5,
+          "markdownDescription": "%config.method%",
+          "enum": [
+            3,
+            2,
+            5,
+            4,
+            1,
+            8,
+            9,
+            10,
+            16,
+            23,
+            13,
+            12,
+            11,
+            17,
+            20,
+            18,
+            19,
+            21,
+            14,
+            15
+          ],
+          "enumItemLabels": [
+            "Muslim World League",
+            "ISNA",
+            "Egyptian General Authority of Survey",
+            "Umm Al-Qura, Makkah",
+            "Karachi",
+            "Gulf Region",
+            "Kuwait",
+            "Qatar",
+            "Dubai",
+            "Jordan",
+            "Diyanet, Turkey",
+            "UOIF, France",
+            "MUIS, Singapore",
+            "JAKIM, Malaysia",
+            "Kemenag, Indonesia",
+            "Tunisia",
+            "Algeria",
+            "Morocco",
+            "Russia",
+            "Moonsighting Committee"
+          ]
+        },
+        "azkarGuard.level": {
+          "type": "string",
+          "enum": [
+            "small",
+            "medium",
+            "full"
+          ],
+          "default": "small",
+          "order": 6,
+          "markdownDescription": "%config.level%",
+          "enumDescriptions": [
+            "%config.level.small%",
+            "%config.level.medium%",
+            "%config.level.full%"
+          ]
+        },
+        "azkarGuard.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "ar"
+          ],
+          "default": "auto",
+          "order": 7,
+          "markdownDescription": "%config.language%"
+        },
+        "azkarGuard.notifications": {
+          "type": "boolean",
+          "default": true,
+          "order": 8,
+          "markdownDescription": "%config.notifications%"
+        },
+        "azkarGuard.breakAfterMinutes": {
+          "type": "number",
+          "default": 60,
+          "minimum": 5,
+          "maximum": 480,
+          "order": 9,
+          "markdownDescription": "%config.breakAfterMinutes%"
+        },
+        "azkarGuard.snoozeMinutes": {
+          "type": "number",
+          "default": 15,
+          "minimum": 1,
+          "maximum": 120,
+          "order": 10,
+          "markdownDescription": "%config.snoozeMinutes%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "npm run typecheck && node esbuild.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "npm run build && vsce package --no-dependencies",
+    "vscode:prepublish": "node esbuild.mjs --production",
+    "test:integration": "npm run build && node test/run.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/vscode": "1.95.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

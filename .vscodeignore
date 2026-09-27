@@ -1,0 +1,14 @@
+**
+!dist/extension.js
+!dist/webview.js
+!dist/checklist.css
+!media/icon.png
+!media/icon-32.png
+!package.json
+!package.nls.json
+!package.nls.ar.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!CREDITS.md
+!PRIVACY.md
