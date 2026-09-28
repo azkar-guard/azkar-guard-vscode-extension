@@ -4,7 +4,7 @@
 
 First stable release, matching the browser extension's 1.0.0. The features are the same as 0.2.0.
 
-- **New extension ID: `azkar-guard.azkar-guard-vscode`.** Version 0.2.0 was briefly published as `azkar-guard.azkar-guard` and then removed. The Marketplace permanently reserves removed extension names, even for the original publisher, so the extension continues under the new ID. If you installed 0.2.0, install the new ID instead; your settings carry over because they live under `azkarGuard.*`.
+- **New extension ID: `s403o.azkar-guard-vscode` on the VS Code Marketplace and `azkar-guard.azkar-guard-vscode` on Open VSX.** Version 0.2.0 was briefly published as `azkar-guard.azkar-guard` and then removed. The Marketplace permanently reserves removed extension names, even for the original publisher, so the extension continues under the new ID. If you installed 0.2.0, install the new ID instead; your settings carry over because they live under `azkarGuard.*`.
 
 ## 0.2.0
 
