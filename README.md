@@ -4,6 +4,12 @@ Keeps reminding you until your morning and evening Azkar are complete, right ins
 
 Phase 2 of [Azkar Guard](https://github.com/azkar-guard). The browser extension is [azkar-guard-browser-extension](https://github.com/azkar-guard/azkar-guard-browser-extension).
 
+## Install
+
+- **VS Code:** [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=s403o.azkar-guard-vscode), or run `code --install-extension s403o.azkar-guard-vscode`.
+- **Cursor, Windsurf, VSCodium, Gitpod:** [Open VSX](https://open-vsx.org/extension/azkar-guard/azkar-guard-vscode). Search for "Azkar Guard" in the Extensions view.
+- **Manual:** download the `.vsix` from [Releases](https://github.com/azkar-guard/azkar-guard-vscode-extension/releases) and run `code --install-extension azkar-guard-vscode-<version>.vsix`.
+
 ## How it works
 
 - **Status bar.** `$(shield) Azkar 2/8` shows the current session's progress. It stays highlighted until the session is done. Click it to open the checklist.
@@ -79,13 +85,13 @@ npm run build              # typecheck + bundle (esbuild) into dist/
 npm test                   # unit tests (vitest): windows, streak, data, break timer, locations,
                            # and prayer times vs AlAdhan reference fixtures (within 1 min)
 npm run test:integration   # runs src/test/suite.ts inside a real, downloaded VS Code
-npm run package            # builds azkar-guard-<version>.vsix
+npm run package            # builds azkar-guard-vscode-<version>.vsix
 ```
 
 To try it locally, press **F5** in VS Code to launch an Extension Development Host. Or install the `.vsix`:
 
 ```bash
-code --install-extension azkar-guard-0.1.0.vsix
+code --install-extension azkar-guard-vscode-1.0.0.vsix
 ```
 
 **Layout:**
@@ -107,4 +113,4 @@ src/test/suite.ts      integration tests
 
 The azkar data and pure logic are deliberately copied from the browser extension rather than shared, per the project plan.
 
-**Publishing** (later): the VS Code Marketplace (`vsce`) and Open VSX (`ovsx`), so Cursor, Windsurf and VSCodium users can install it too.
+**Publishing:** published as `s403o.azkar-guard-vscode` on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=s403o.azkar-guard-vscode) and as `azkar-guard.azkar-guard-vscode` on [Open VSX](https://open-vsx.org/extension/azkar-guard/azkar-guard-vscode). The two stores use different publisher IDs, so the Open VSX package is built with `publisher` set to `azkar-guard`. Releases are currently uploaded by hand from `npm run package`; automated publishing comes with the CI/CD work.

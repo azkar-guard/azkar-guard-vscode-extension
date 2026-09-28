@@ -26,7 +26,7 @@ async function waitFor<T>(fn: () => Promise<T>, ok: (v: T) => boolean, what: str
 }
 
 test("activates and registers its commands", async () => {
-  const ext = vscode.extensions.getExtension("azkar-guard.azkar-guard");
+  const ext = vscode.extensions.getExtension("s403o.azkar-guard-vscode");
   assert.ok(ext, "extension found");
   api = (await ext.activate()) as TestApi;
   assert.ok(api, "test API returned in test mode");
