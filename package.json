@@ -2,7 +2,7 @@
   "name": "azkar-guard-vscode",
   "displayName": "Azkar Guard",
   "description": "Keeps reminding you until your morning and evening Azkar are complete, right inside VS Code.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "s403o",
   "license": "MIT",
   "private": true,
@@ -211,6 +211,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "package": "npm run build && vsce package --no-dependencies",
+    "package:openvsx": "npm run build && node scripts/package-openvsx.mjs",
     "vscode:prepublish": "node esbuild.mjs --production",
     "test:integration": "npm run build && node test/run.mjs"
   },
