@@ -1,6 +1,6 @@
 {
   "name": "azkar-guard-vscode",
-  "displayName": "Azkar Guard — حارس الأذكار",
+  "displayName": "Azkar Guard for VS Code — حارس الأذكار",
   "description": "Keeps reminding you until your morning and evening Azkar are complete, right inside VS Code.",
   "version": "1.0.0",
   "publisher": "azkar-guard",
