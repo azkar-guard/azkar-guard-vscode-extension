@@ -2,7 +2,7 @@
 
 Keeps reminding you until your morning and evening Azkar are complete, right inside VS Code. Built for developers who spend the whole day in the editor and let the Azkar slip.
 
-Phase 2 of [Azkar Guard](https://github.com/azkar-guard). The browser extension is [azkar-guard-browser-extension](https://github.com/azkar-guard/azkar-guard-browser-extension).
+Phase 2 of [Azkar Guard](https://github.com/azkar-guard). The browser extension is [azkar-guard-browser-extension](https://github.com/azkar-guard/azkar-guard-browser-extension)
 
 ## Install
 
