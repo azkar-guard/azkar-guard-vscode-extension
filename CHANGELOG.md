@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- **Open VSX:** the display name is now "Azkar Guard", the same as on the VS Code Marketplace. No functional changes.
+
 ## 1.0.0
 
 First stable release, matching the browser extension's 1.0.0. The features are the same as 0.2.0.
